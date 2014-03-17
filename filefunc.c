@@ -176,7 +176,6 @@ int newbufferedpack (char *devname, char *dirname )
   	DIR *dir;
 	struct dirent *entry;
 
-	printf (" indexpath len  %zu , %s\n", strlen (indexpath), indexpath);
 	indexpath [strlen (indexpath)] = '\0';
 
 	dir = opendir(indexpath);
@@ -187,9 +186,10 @@ int newbufferedpack (char *devname, char *dirname )
 
 	if (!dir)
 		printf ("*** ZVM Error open DIR %s\n", indexpath);
-	int blocksize = READ_WRITE_BUFF_SIZE;
+	int blocksize = 1024;//READ_WRITE_BUFF_SIZE;
 	char *buff = NULL;
-	buff = (char *) malloc (blocksize);
+	fprintf (stdout, "test %d\n", blocksize);
+	buff = (char *) malloc (sizeof (char) * blocksize);
 
 	long deltabytes = 0;
 	long mainbytes = 0;
