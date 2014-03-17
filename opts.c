@@ -98,8 +98,6 @@ int getopts (int argc, char **argv, Options_t *opts, KeyValueList_t *kvlist, Lis
 		}
 		else if ((MY_STRNCMP(argv[i], "--struct") == 0) || (MY_STRNCMP(argv[i], "-s") == 0))
 		{
-			printf ("get list --struct \n");
-			int listcount = get_list(stdin, NULL, list);
 			if (checkMode (opts, struct_create)  != 0 )
 				return -1;
 		}
@@ -112,12 +110,11 @@ int getopts (int argc, char **argv, Options_t *opts, KeyValueList_t *kvlist, Lis
 	}
 	if (opts->iList == 1)
 	{
-		if (opts->tMode != none && opts->tMode != add)
-		{
-			int listcount = get_list(stdin, NULL, list);
-			if (listcount == 0)
-				opts->iList = 0;
-		}
+		get_list(stdin, NULL, list);
+	}
+	else
+	{
+		getEnvKeyList (list);
 	}
 	return 0;
 }
