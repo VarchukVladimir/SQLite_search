@@ -13,6 +13,11 @@
 #include "strfunc.h"
 #include "filefunc.h"
 
+#define KEY_OR_VAL flag == 1 ? kvList->pKey[i] : kvList->pVal[i]
+//#define KEY_OR_VAL_SIZE flag == 1 ? 3 : 5
+#define KEY_OR_VAL_TEMPL flag == 1 ? " %s," : " \"%s\","
+
+
 
 unsigned long num_CRC32 (const char * str)
 {
@@ -31,6 +36,62 @@ char * str_CRC32 (const char * str)
 	return buff;
 }
 
+char *getInsert_Values_Str ( KeyValueList_t *kvList, List_t *fields, int flag )
+{
+	int i = 0, j = 0;
+	char *str = NULL;
+	int strsize = 0;
+	for (i = 0; i < kvList->count; i++)
+	{
+		for ( j = 0; j < fields->count; j++)
+			if (strcasecmp( kvList->pKey[i] , fields->list[j] ) == 0 )
+				strsize += strlen ( KEY_OR_VAL ) + strlen (KEY_OR_VAL_TEMPL);
+	}
+	strsize++;
+
+	str = (char *) malloc ( strsize * sizeof (char ) );
+	if (str == NULL )
+		return NULL;
+	str[0] = '\0';
+	for (i = 0; i < kvList->count; i++)
+	{
+		for ( j = 0; j < fields->count; j++)
+			if ( strcasecmp( kvList->pKey[i], fields->list[j] ) == 0 )
+			{
+				sprintf ( str + strlen (str), KEY_OR_VAL_TEMPL, KEY_OR_VAL );
+			}
+	}
+	str [strlen ( str ) - 1] = '\0';
+	return str;
+}
+
+/*
+char *getInsert_Values_Str ( KeyValueList_t *kvList, List_t *fields, int flag )
+{
+	int i = 0, j = 0;
+	char *str = NULL;
+	int strsize = 0;
+	for (i = 0; i < kvList->count; i++)
+	{
+		for ( j = 0; j < fields->count; j++)
+			if (strcasecmp( kvList->pKey[i] , fields->list[j] ) == 0 )
+				strsize += strlen ( KEY_OR_VAL ) + 3;
+	}
+	strsize++;
+	str = (char *) malloc ( strsize * sizeof (char ) );
+	if (str == NULL )
+		return NULL;
+	str[0] = '\0';
+	for (i = 0; i < kvList->count; i++)
+	{
+		for ( j = 0; j < fields->count; j++)
+			if ( strcasecmp( kvList->pKey[i], fields->list[j] ) == 0 )
+				sprintf ( str + strlen (str), " %s,", KEY_OR_VAL );
+	}
+	str [strlen ( str ) - 1] = '\0';
+	return str;
+}
+*/
 
 char *getKeyArgs (char * pKeyVal)
 {
@@ -67,17 +128,12 @@ char *getKeyArgs_e (char * pKeyVal)
 {
 	char *pKey = NULL;
 	char *p = NULL;
-	int iKeyValLen = 0;
-	iKeyValLen = sizeof (char) * (iKeyValLen + 1);
-
-	//WTF
-	pKey = (char *) malloc (iKeyValLen + 1);
 
 	if ((p = strstr ( pKeyVal, "=")) != NULL)
 	{
-		printf ("%s\n", p);
+		pKey = (char *) malloc ( sizeof (char ) * (p - pKeyVal + 2) );
 		strncpy (pKey, pKeyVal, p - pKeyVal );
-		pKey[p-pKeyVal] = '\0';
+		pKey[p - pKeyVal] = '\0';
 	}
 	else
 		return NULL;
@@ -90,11 +146,16 @@ char *getValArgs_e (char * pKeyVal)
 	char *pVal = NULL;
 	char *p = NULL;
 
-	pVal = (char *) malloc (sizeof (char) * (strlen (pKeyVal) + 1));
+
+
+	//pVal = (char *) malloc (sizeof (char) * (strlen (pKeyVal) + 2));
 
 	if ((p = strstr ( pKeyVal, "=")) != NULL)
 	{
-		strncpy (pVal, p + 1, strlen (pKeyVal) + 1);
+		int slen = strlen (pKeyVal) - (p - pKeyVal);
+
+		pVal = (char *) malloc (sizeof (char) * (slen + 2));
+		strncpy (pVal, p + 1, slen + 1);
 	}
 	else
 		return NULL;
@@ -200,6 +261,8 @@ int addKeyVal (char *key, char *val, KeyValueList_t *tKVList)
 		else
 			return -1;
 	}
+
+
 	if (buff_key != NULL && buff_val != NULL)
 	{
 		if (resize == 1)
@@ -250,12 +313,8 @@ int initKVList (KeyValueList_t *tKVList, int size)
 	if ( (tKVList->pKey == NULL) || ( tKVList->pVal == NULL ))
 		return -1;
 */
-	fprintf (stderr, "%p, %p \n", tKVList->pKey, temp_k);
 	tKVList->pKey = temp_k;
-	fprintf (stderr, "%p, %p \n", tKVList->pKey, temp_k);
 	tKVList->pVal = temp_v;
-
-
 	return size;
 }
 
@@ -349,7 +408,7 @@ int addIntKeyVal (char *key, int val, IntKeyValueList_t *tKVList)
 	if ( tKVList->count >= tKVList->max_count )
 	{
 		temp_key = (char **) realloc (tKVList->pKey, sizeof (char *) * (max_count * 2));
-		temp_val = (int *) realloc (tKVList->pVal, sizeof (int) * (max_count * 2));
+		temp_val = (int *) realloc (tKVList->pVal, sizeof (int ) * (max_count * 2));
 		if (temp_key != NULL && temp_val != NULL)
 		{
 			resize = 1;

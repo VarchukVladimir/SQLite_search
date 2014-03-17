@@ -56,6 +56,8 @@ void printIntKVList (IntKeyValueList_t *);
 unsigned long num_CRC32 (const char *);
 char * str_CRC32 (const char *);
 
+char *getInsert_Values_Str ( KeyValueList_t *, List_t *, int );
+
 
 
 
