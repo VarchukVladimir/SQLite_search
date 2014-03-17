@@ -22,7 +22,7 @@
 #define DB_TABLE_NAME "metatags_tab"
 #define CONTETN_LENGTH_NAME "content_length"
 
-
+#define CHECK_DB_ERROR if (result != SQLITE_OK) databaseError (db)
 
 int create_Table (sqlite3 *, List_t *);
 void databaseError(sqlite3*);

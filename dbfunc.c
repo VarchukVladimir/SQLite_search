@@ -15,6 +15,8 @@
 
 #define MAX_BUFF 1024
 
+
+
 int do_Query_SQL (sqlite3 *db, char *SQL)
 {
 	return sqlite3_exec(db, SQL, 0, 0, 0);
@@ -38,6 +40,7 @@ int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
         }
         result = sqlite3_finalize(pStmt);
     }while (result==SQLITE_SCHEMA );
+
 	return reccount;
 }
 
@@ -59,7 +62,7 @@ int checkTable (sqlite3 *db, char *tableName)
 
 int Query_SQL (sqlite3 *db)
 {
-	char *SQL = "SELECT * FROM metatags_tab WHERE rowid=1";
+	char *SQL = "SELECT * FROM metatags_tab";
     sqlite3_stmt *pStmt;
 
     int rc;
@@ -69,18 +72,21 @@ int Query_SQL (sqlite3 *db)
         	return rc;
         }
 
+        printf (" prepare OK \n");
+
         while ( (rc = sqlite3_step(pStmt)) == SQLITE_ROW)
         {
+            printf (" step OK \n");
             int  i = 0;
             for ( i = 0; i < sqlite3_column_count(pStmt); i++)
             {
             	int colbytes = sqlite3_column_bytes (pStmt, i);
             	char buff [colbytes];
+
             	if (sqlite3_column_type(pStmt, i) == 3)
-            		//            		printf ( "%s| ", sqlite3_column_type(pStmt, i), i, sqlite3_column_text(pStmt, i) );
-            		printf ( "%s (str)\t %s\t| ", sqlite3_column_name(pStmt, i), sqlite3_column_text(pStmt, i) );
+            		printf ( "%s \t %s\t| ", sqlite3_column_name(pStmt, i), sqlite3_column_text(pStmt, i) );
             	else
-            		printf ( "%s (int)\t %d\t| ", sqlite3_column_name(pStmt, i), sqlite3_column_int(pStmt, i) );
+            		printf ( "%s \t %d\t| ", sqlite3_column_name(pStmt, i), sqlite3_column_int(pStmt, i) );
             }
             printf ("\n");
         }
