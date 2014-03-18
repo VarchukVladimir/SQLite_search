@@ -60,9 +60,8 @@ int checkTable (sqlite3 *db, char *tableName)
 	return 1;
 }
 
-int Query_SQL (sqlite3 *db)
+int Query_SQL (sqlite3 *db, char * SQL)
 {
-	char *SQL = "SELECT * FROM metatags_tab";
     sqlite3_stmt *pStmt;
 
     int rc;
@@ -76,7 +75,6 @@ int Query_SQL (sqlite3 *db)
 
         while ( (rc = sqlite3_step(pStmt)) == SQLITE_ROW)
         {
-            printf (" step OK \n");
             int  i = 0;
             for ( i = 0; i < sqlite3_column_count(pStmt); i++)
             {
@@ -84,10 +82,11 @@ int Query_SQL (sqlite3 *db)
             	char buff [colbytes];
 
             	if (sqlite3_column_type(pStmt, i) == 3)
-            		printf ( "%s \t %s\t| ", sqlite3_column_name(pStmt, i), sqlite3_column_text(pStmt, i) );
+            		printf ( "%s\t|", sqlite3_column_text(pStmt, i) );
             	else
-            		printf ( "%s \t %d\t| ", sqlite3_column_name(pStmt, i), sqlite3_column_int(pStmt, i) );
+            		printf ( "%d\t|", sqlite3_column_int(pStmt, i) );
             }
+            printf ("\n");
             printf ("\n");
         }
         rc = sqlite3_finalize(pStmt);
@@ -95,6 +94,7 @@ int Query_SQL (sqlite3 *db)
 
 	return rc;
 }
+
 
 int insertSQL (sqlite3 *db, const char * SQL)
 {

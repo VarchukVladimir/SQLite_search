@@ -22,7 +22,7 @@
 #define DB_TABLE_NAME "metatags_tab"
 #define CONTETN_LENGTH_NAME "content_length"
 
-#define CHECK_DB_ERROR if (result != SQLITE_OK) databaseError (db)
+#define CHECK_DB_ERROR if (result != SQLITE_OK) databaseError (db);
 
 int create_Table (sqlite3 *, List_t *);
 void databaseError(sqlite3*);
@@ -31,7 +31,7 @@ int get_tables_names (sqlite3 *, List_t *);
 int delete_table (sqlite3 *, const char *);
 int get_table_struct (sqlite3 *, KeyValueList_t *, const char *);
 int insertValues (sqlite3 *, IntKeyValueList_t *, KeyValueList_t *, KeyValueList_t *, const char *);
-int Query_SQL (sqlite3 *);
+int Query_SQL (sqlite3 *, char *);
 int checkTable (sqlite3 *, char *);
 
 #endif /* DBFUNC_H_ */
