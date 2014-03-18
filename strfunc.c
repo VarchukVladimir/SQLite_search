@@ -17,6 +17,8 @@
 //#define KEY_OR_VAL_SIZE flag == 1 ? 3 : 5
 #define KEY_OR_VAL_TEMPL flag == 1 ? " %s," : " \"%s\","
 
+#define WHILE_TEMPLATE_MATCH "%s MATCH '%s',"
+#define WHILE_TEMPLATE_EQ "%s='%s',"
 
 
 unsigned long num_CRC32 (const char * str)
@@ -34,6 +36,31 @@ char * str_CRC32 (const char * str)
 	buff = (char *) malloc (sizeof (char) * 13);
 	sprintf( buff, "%zu", crc );
 	return buff;
+}
+
+
+char *getWHERE_condition ( Options_t *opts )
+{
+	char *str = NULL;
+	int strsize = 0;
+	char *strMatch = opts->iMatch == 1 ? WHILE_TEMPLATE_MATCH : WHILE_TEMPLATE_EQ ;
+	int i = 0;
+
+	for ( i = 0; i < opts->iCount; i++)
+	{
+		strsize += strlen ( opts->pKey[i] ) + strlen ( opts->pVal[i] ) + strlen (strMatch);
+	}
+	strsize += strlen ( strMatch ) + 1;
+	str = (char *) malloc (sizeof (char ) * strsize);
+	if (str == NULL)
+		return 0;
+	str[0] = '\0';
+	for (i = 0; i < opts->iCount; i++)
+	{
+		sprintf( str + strlen (str), strMatch, opts->pKey[i], opts->pVal[i]);
+	}
+	str [strlen (str) - 1] = '\0';
+	return str;
 }
 
 char *getInsert_Values_Str ( KeyValueList_t *kvList, List_t *fields, int flag )
