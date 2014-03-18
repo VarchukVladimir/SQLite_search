@@ -33,5 +33,6 @@ int get_table_struct (sqlite3 *, KeyValueList_t *, const char *);
 int insertValues (sqlite3 *, IntKeyValueList_t *, KeyValueList_t *, KeyValueList_t *, const char *);
 int Query_SQL (sqlite3 *, char *);
 int checkTable (sqlite3 *, char *);
+int checkRec_Path_Name (sqlite3 *, char *);
 
 #endif /* DBFUNC_H_ */

@@ -12,6 +12,7 @@
 
 #include "strfunc.h"
 #include "dbfunc.h"
+#include "env.h"
 
 #define MAX_BUFF 1024
 
@@ -21,6 +22,7 @@ int do_Query_SQL (sqlite3 *db, char *SQL)
 {
 	return sqlite3_exec(db, SQL, 0, 0, 0);
 }
+
 
 int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
 {
@@ -44,6 +46,26 @@ int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
 	return reccount;
 }
 
+int checkRec_Path_Name (sqlite3 *db, char *tableName)
+{
+	char *pathInfo = NULL;
+	char *SQL_ = "SELECT ID FROM %s WHERE %s"; // 1. PATH_INFO field, 2. table name, 3. filter field PATH_INFO, 4. filter val
+	char *SQL_Where = NULL;
+	char *SQL = NULL;
+	pathInfo = getenv (PATH_INFO_NAME);
+	if (pathInfo == NULL)
+		return -1;
+	SQL = (char *) malloc ( sizeof (char) * ( strlen (SQL_) + strlen ( PATH_INFO_NAME ) + 20 + strlen (tableName) )  );
+	sprintf (SQL, SQL_, DB_TABLE_NAME, PATH_INFO_NAME, pathInfo );
+	if (do_Query_SQL_row_count (db, SQL) > 0)
+	{
+		free (SQL);
+		return 1;
+	}
+	free (SQL);
+	return 0;
+}
+
 int checkTable (sqlite3 *db, char *tableName)
 {
 	List_t listTables;
@@ -63,19 +85,19 @@ int checkTable (sqlite3 *db, char *tableName)
 int Query_SQL (sqlite3 *db, char * SQL)
 {
     sqlite3_stmt *pStmt;
-
-    int rc;
+    int rowcount = 0;
+    int result;
     do {
-        rc = sqlite3_prepare(db, SQL, -1, &pStmt, 0);
-        if( rc!=SQLITE_OK ){
-        	return rc;
+    	result = sqlite3_prepare(db, SQL, -1, &pStmt, 0);
+        if( result!=SQLITE_OK ){
+        	CHECK_DB_ERROR;
+        	return result;
         }
 
-        printf (" prepare OK \n");
-
-        while ( (rc = sqlite3_step(pStmt)) == SQLITE_ROW)
+        while ( (result = sqlite3_step(pStmt)) == SQLITE_ROW)
         {
             int  i = 0;
+            rowcount++;
             for ( i = 0; i < sqlite3_column_count(pStmt); i++)
             {
             	int colbytes = sqlite3_column_bytes (pStmt, i);
@@ -87,12 +109,13 @@ int Query_SQL (sqlite3 *db, char * SQL)
             		printf ( "%d\t|", sqlite3_column_int(pStmt, i) );
             }
             printf ("\n");
-            printf ("\n");
-        }
-        rc = sqlite3_finalize(pStmt);
-    }while (rc==SQLITE_SCHEMA );
 
-	return rc;
+        }
+        result = sqlite3_finalize(pStmt);
+    }while (result==SQLITE_SCHEMA );
+
+    printf ("query result have %d rows\n", rowcount);
+	return result;
 }
 
 
@@ -231,7 +254,6 @@ int get_table_struct (sqlite3 *db, KeyValueList_t *list, const char * tableName 
 
     SQL = (char *) malloc (sizeof (char) * (strlen (tableName) + strlen (SQL_) + 2));
     sprintf (SQL, SQL_, tableName);
-    printf ("get_table_struct SQL=%s.\n", SQL);
     do {
     	result = sqlite3_prepare(db, SQL, -1, &pStmt, 0);
 
@@ -243,7 +265,6 @@ int get_table_struct (sqlite3 *db, KeyValueList_t *list, const char * tableName 
         result = sqlite3_step(pStmt);
         int i = 0;
         int column_count = sqlite3_column_count(pStmt);
-        printf ("column_count = %d\n", column_count);
         for (i = 0; i < column_count; i++)
         {
         	char *datatype;
