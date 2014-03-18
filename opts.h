@@ -16,6 +16,7 @@ typedef struct {
 	Operation_t tMode;
 	char *pObject_path;
 	int iList;
+	int iMatch;
 	char **pKey;
 	char **pVal;
 	int iCount;

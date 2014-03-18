@@ -16,6 +16,7 @@ void init_options (Options_t *opts)
 {
 	opts->tMode = none;
 	opts->iList = 0;
+	opts->iMatch = 0;
 	opts->pObject_path = NULL;
 	opts->pKey = NULL;
 	opts->pVal = NULL;
@@ -84,7 +85,7 @@ int getopts (int argc, char **argv, Options_t *opts, KeyValueList_t *kvlist, Lis
 				char *tempval = NULL;
 
 				tempkey = getKeyArgs(argv[i+iFilterCount + 1]);
-				tempval = getKeyArgs(argv[i+iFilterCount + 1]);
+				tempval = getValArgs(argv[i+iFilterCount + 1]);
 				if (tempkey && tempval)
 				{
 					opts->pKey[iFilterCount] = tempkey;
@@ -104,6 +105,10 @@ int getopts (int argc, char **argv, Options_t *opts, KeyValueList_t *kvlist, Lis
 		else if ((MY_STRNCMP(argv[i], "--list") == 0) || (MY_STRNCMP(argv[i], "-l") == 0))
 		{
 			opts->iList = 1;
+		}
+		else if ((MY_STRNCMP(argv[i], "--match") == 0) || (MY_STRNCMP(argv[i], "-m") == 0))
+		{
+			opts->iMatch = 1;
 		}
 		else
 			return -1;
