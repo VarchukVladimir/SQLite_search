@@ -33,7 +33,7 @@ char * str_CRC32 (const char * str)
 	unsigned long crc = crc32(0L, Z_NULL, 0);
 	char *	buff = NULL;
 	crc = crc32(crc, str, strlen(str));
-	buff = (char *) malloc (sizeof (char) * 13);
+	buff = (char *) malloc (sizeof (char) * 20);
 	sprintf( buff, "%zu", crc );
 	return buff;
 }
@@ -80,6 +80,58 @@ char *getInsert_Values_Str ( KeyValueList_t *kvList, List_t *fields, int flag )
 	if (str == NULL )
 		return NULL;
 	str[0] = '\0';
+	for (i = 0; i < kvList->count; i++)
+	{
+		for ( j = 0; j < fields->count; j++)
+			if ( strcasecmp( kvList->pKey[i], fields->list[j] ) == 0 )
+			{
+				sprintf ( str + strlen (str), KEY_OR_VAL_TEMPL, KEY_OR_VAL );
+			}
+	}
+	str [strlen ( str ) - 1] = '\0';
+	return str;
+}
+
+
+char *getInsert_Values_Str_ID ( KeyValueList_t *kvList, List_t *fields, int flag, int useID )
+{
+	int i = 0, j = 0;
+	char *str = NULL;
+	int strsize = 0;
+	unsigned long iCRC32 = 0;
+	char *cCRC32 = NULL;
+
+	for (i = 0; i < kvList->count; i++)
+	{
+		for ( j = 0; j < fields->count; j++)
+			if (strcasecmp( kvList->pKey[i] , fields->list[j] ) == 0 )
+				strsize += strlen ( KEY_OR_VAL ) + strlen (KEY_OR_VAL_TEMPL);
+	}
+	if (useID == 1)
+	{
+		for ( i = 0; i < kvList->count; i++)
+		{
+
+			if ( kvList->pKey[i] != NULL && strcasecmp( kvList->pKey[i], "PATH_INFO" ) == 0)
+			{
+				cCRC32 = str_CRC32( kvList->pVal[i] );
+				iCRC32 = num_CRC32( kvList->pVal[i] );
+			}
+		}
+		strsize += strlen ( cCRC32 );
+	}
+	strsize++;
+
+	str = (char *) malloc ( strsize * sizeof (char ) );
+	if (str == NULL )
+		return NULL;
+	str[0] = '\0';
+
+	if (useID == 1)
+	{
+		sprintf ( str + strlen (str), " %s,", flag == 1 ? "ID" : cCRC32 );
+		free(cCRC32);
+	}
 	for (i = 0; i < kvList->count; i++)
 	{
 		for ( j = 0; j < fields->count; j++)
