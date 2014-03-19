@@ -66,6 +66,10 @@ int checkRec_Path_Name (sqlite3 *db, char *tableName)
 	return 0;
 }
 
+/*
+ *          0 if table exist else 1
+ */
+
 int checkTable (sqlite3 *db, char *tableName)
 {
 	List_t listTables;
@@ -288,7 +292,7 @@ int get_table_struct (sqlite3 *db, KeyValueList_t *list, const char * tableName 
 
 int delete_table (sqlite3 *db, const char *table_name)
 {
-	char *SQL_ = "drop  table if exists ";
+	char *SQL_ = "drop table if exists ";
 	char *SQL = NULL;
     int result = 0;
 
@@ -300,63 +304,10 @@ int delete_table (sqlite3 *db, const char *table_name)
 	return result;
 }
 
-/*
-static int writeBlob(
-                sqlite3 *db, 		 Database to insert data into
-                const char *zKey, 	 Null-terminated key string
-                void *zBlob, 		 Pointer to blob of data
-                int nBlob 			 Length of data pointed to by zBlob
-                ){
-
-        const char *zSql = "INSERT INTO blobs(key, value) VALUES(?, ?)";
-        sqlite3_stmt *pStmt;
-        int rc;
-
-        do {
-                 Compile the INSERT statement into a virtual machine.
-                rc = sqlite3_prepare(db, zSql, -1, &pStmt, 0);
-                if( rc!=SQLITE_OK ){
-                        return rc;
-                }
-
-                 Bind the key and value data for the new table entry to SQL variables
-                 ** (the ? characters in the sql statement) in the compiled INSERT
-                 ** statement.
-                 **
-                 ** NOTE: variables are numbered from left to right from 1 upwards.
-                 ** Passing 0 as the second parameter of an sqlite3_bind_XXX() function
-                 ** is an error.
-
-                sqlite3_bind_text(pStmt, 1, zKey, -1, SQLITE_STATIC);
-                sqlite3_bind_blob(pStmt, 2, zBlob, nBlob, SQLITE_STATIC);
-
-                 Call sqlite3_step() to run the virtual machine. Since the SQL being
-                 ** executed is not a SELECT statement, we assume no data will be returned.
-
-                rc = sqlite3_step(pStmt);
-                assert( rc!=SQLITE_ROW );
-
-                 Finalize the virtual machine. This releases all memory and other
-                 ** resources allocated by the sqlite3_prepare() call above.
-
-                rc = sqlite3_finalize(pStmt);
-
-                printf ("test\n");
-
-                 If sqlite3_finalize() returned SQLITE_SCHEMA, then try to execute
-                 ** the statement again.
-
-        } while( rc == SQLITE_SCHEMA );
-
-        return rc;
-}
-*/
-
-
 int create_Table (sqlite3 *db, List_t *list)
-{ //
-	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE metatags_tab USING fts4 (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
-//	const char *SqlCreatTemplate = "CREATE TABLE metatags_tab (ID INTEGER PRIMARY KEY NOT NULL UNIQUE%s )";
+{
+//	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE metatags_tab USING fts4 (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
+	const char *SqlCreatTemplate = "CREATE TABLE metatags_tab (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
 	const char *SqlContentLength = ", CONTENT_LENGTH INTEGER";
 	const char *SqlTEXT_FILED = "TEXT ";
 	char *SQL = NULL;
