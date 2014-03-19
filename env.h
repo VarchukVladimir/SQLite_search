@@ -8,8 +8,6 @@
 #ifndef ENV_H_
 #define ENV_H_
 
-#define PATH_INFO_NAME "PATH_INFO"
-
 int printEnviron ();
 int getEnvList ( KeyValueList_t *);
 int getEnvKeyList ( List_t *);

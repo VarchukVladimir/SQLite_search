@@ -9,9 +9,7 @@
 #define OPTS_H_
 
 #include "strfunc.h"
-#include "opts_types.h"
-
-
+#include "config_const_types.h"
 
 int getopts (int, char **, Options_t*, KeyValueList_t *, List_t *);
 

@@ -10,7 +10,8 @@
 
 #include "opts.h"
 #include "strfunc.h"
-#include "opts_types.h"
+#include "config_const_types.h"
+
 
 
 void init_options (Options_t *opts)

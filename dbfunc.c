@@ -16,8 +16,6 @@
 
 #define MAX_BUFF 1024
 
-
-
 int do_Query_SQL (sqlite3 *db, char *SQL)
 {
 	return sqlite3_exec(db, SQL, 0, 0, 0);
@@ -56,7 +54,7 @@ int checkRec_Path_Name (sqlite3 *db, char *tableName)
 	if (pathInfo == NULL)
 		return -1;
 	SQL = (char *) malloc ( sizeof (char) * ( strlen (SQL_) + strlen ( PATH_INFO_NAME ) + 20 + strlen (tableName) )  );
-	sprintf (SQL, SQL_, DB_TABLE_NAME, PATH_INFO_NAME, pathInfo );
+	sprintf (SQL, SQL_, DB_TABLE_NAME_FTS, PATH_INFO_NAME, pathInfo );
 	if (do_Query_SQL_row_count (db, SQL) > 0)
 	{
 		free (SQL);
@@ -76,13 +74,11 @@ int checkTable (sqlite3 *db, char *tableName)
 	int i = 0;
 	initList( &listTables, 10 );
 	get_tables_names (db, &listTables);
-
 	for (i = 0; i < listTables.count; i++)
 		if ( MY_STRNCMP(tableName, listTables.list[i]) == 0 )
 		{
 			return 0;
 		}
-
 	return 1;
 }
 
@@ -106,14 +102,21 @@ int Query_SQL (sqlite3 *db, char * SQL)
             {
             	int colbytes = sqlite3_column_bytes (pStmt, i);
             	char buff [colbytes];
-
+//        		printf ("%s \t|", sqlite3_column_name ( pStmt, i ));
             	if (sqlite3_column_type(pStmt, i) == 3)
-            		printf ( "%s\t|", sqlite3_column_text(pStmt, i) );
+            	{
+            		if (i == (sqlite3_column_count(pStmt) - 1))
+               			printf ( "%s, %s\t", sqlite3_column_name(pStmt, i), sqlite3_column_text(pStmt, i) );
+            		else
+            			printf ( "%s, %s\t|", sqlite3_column_name(pStmt, i), sqlite3_column_text(pStmt, i) );
+            	}
             	else
-            		printf ( "%d\t|", sqlite3_column_int(pStmt, i) );
+            		if (i == (sqlite3_column_count(pStmt) - 1))
+            			printf ( "%s, %d\t", sqlite3_column_name(pStmt, i), sqlite3_column_int(pStmt, i) );
+            		else
+            			printf ( "%s, %d\t|", sqlite3_column_name(pStmt, i), sqlite3_column_int(pStmt, i) );
             }
             printf ("\n");
-
         }
         result = sqlite3_finalize(pStmt);
     }while (result==SQLITE_SCHEMA );
@@ -121,7 +124,6 @@ int Query_SQL (sqlite3 *db, char * SQL)
     printf ("query result have %d rows\n", rowcount);
 	return result;
 }
-
 
 int insertSQL (sqlite3 *db, const char * SQL)
 {
@@ -136,8 +138,6 @@ int insertSQL (sqlite3 *db, const char * SQL)
         result = sqlite3_step(pStmt);
         result = sqlite3_finalize(pStmt);
 	} while (result == SQLITE_SCHEMA);
-
-
 	return result;
 }
 
@@ -152,26 +152,19 @@ int insertValues (sqlite3 *db, IntKeyValueList_t *intList, KeyValueList_t *strLi
 	int SQL_values_template_size = 0;
 	sqlite3_stmt *pStmt;
 	int result = 0;
-
 	if (tableName == NULL )
 		return -1;
-
-
 	for (i = 0; i < fieldList->count; i++)
 	{
 		SQL_fields_size += strlen (fieldList->pKey[i]) + 2;
 	}
 	SQL_fields_size++;
 	SQL_values_template_size = fieldList->count * 3 + 1;
-
 	SQL_values_template = (char *) malloc ( sizeof (char) * SQL_values_template_size);
 	SQL_fields = (char *) malloc ( sizeof (char) * SQL_fields_size);
-
 	SQL = (char *) malloc ( sizeof (char) * (strlen (SQL_) + strlen (tableName) + SQL_values_template_size + SQL_fields_size) );
-
 	if (SQL == NULL || SQL_values_template == NULL || SQL_fields == NULL)
 		return -1;
-
 	SQL_values_template[0] = '\0';
 	SQL_fields[0] = '\0';
 
@@ -180,15 +173,10 @@ int insertValues (sqlite3 *db, IntKeyValueList_t *intList, KeyValueList_t *strLi
 		sprintf (SQL_values_template + strlen (SQL_values_template), "?, " );
 		sprintf (SQL_fields + strlen (SQL_fields), "%s, ", fieldList->pKey[i] );
 	}
-
 	SQL_values_template[strlen (SQL_values_template) - 2] = '\0';
 	SQL_fields[strlen (SQL_fields) - 2] = '\0';
-
 	sprintf (SQL, SQL_, tableName, SQL_fields, SQL_values_template);
-
 	printf ("%s\n", SQL);
-
-
 	do {
 		result = sqlite3_prepare(db, SQL, -1, &pStmt, 0);
 
@@ -203,7 +191,6 @@ int insertValues (sqlite3 *db, IntKeyValueList_t *intList, KeyValueList_t *strLi
 				if ( MY_STRNCMP( strList->pKey[j], fieldList->pKey[i]) == 0)
 				{
 					sqlite3_bind_text (pStmt, i + 1, strList->pVal[j], -1, SQLITE_STATIC) ;// add value
-
 				}
 			}
 			// adding int values
@@ -221,7 +208,6 @@ int insertValues (sqlite3 *db, IntKeyValueList_t *intList, KeyValueList_t *strLi
 				}
 		}
         result = sqlite3_step(pStmt);
-//		printf ( "%s\n", sqlite3_);
         result = sqlite3_finalize(pStmt);
 	} while (result == SQLITE_SCHEMA);
 	return 0;
@@ -306,9 +292,9 @@ int delete_table (sqlite3 *db, const char *table_name)
 
 int create_Table (sqlite3 *db, List_t *list)
 {
-//	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE metatags_tab USING fts4 (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
-	const char *SqlCreatTemplate = "CREATE TABLE metatags_tab (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
-	const char *SqlContentLength = ", CONTENT_LENGTH INTEGER";
+//	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE %s USING fts4 (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
+	const char *SqlCreatTemplate = "CREATE TABLE %s (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
+	const char *SqlContentLength = ", CONTENT_LENGTH INTEGER ";
 	const char *SqlTEXT_FILED = "TEXT ";
 	char *SQL = NULL;
 	char *buff = NULL;
@@ -319,11 +305,14 @@ int create_Table (sqlite3 *db, List_t *list)
 	buff = malloc(MAX_BUFF);
 	for (i = 0; i < list->count; i++)
 	{
+		printf ("buff = %s   \n", buff);
 		if ((MY_STRNCMP (list->list[i], CONTETN_LENGTH_NAME)) == 0)
 		{
-			if (checkmemsize(strlen(buff) + strlen(SqlContentLength) + 1, &max_buff_len, buff) == NULL)
+			if (checkmemsize( buff_len + strlen(SqlContentLength) + 4, &max_buff_len, buff) == NULL)
 				return -1;
-			sprintf(buff + strlen(buff), "%s", SqlContentLength);
+			//printf (" buff = %s \n", buff );
+			sprintf(buff + buff_len, "%s", SqlContentLength);
+			//printf (" buff = %s \n", buff );
 			buff_len = strlen(buff);
 		}
 		else
@@ -334,15 +323,14 @@ int create_Table (sqlite3 *db, List_t *list)
 			buff_len = strlen(buff);
 		}
 	}
-	SQL = (char *) malloc( sizeof(char) * (strlen(buff) + strlen(SqlCreatTemplate) + 1));
-	sprintf(SQL, SqlCreatTemplate, buff);
+	SQL = (char *) malloc( sizeof(char) * ( strlen ( DB_TABLE_NAME_FTS ) + strlen(buff) + strlen(SqlCreatTemplate) + 1));
+	sprintf(SQL, SqlCreatTemplate, DB_TABLE_NAME_FTS, buff);
+	printf ("%s\n", SQL);
 	free(buff);
 	// try to create new table
 	result = sqlite3_exec(db, SQL, 0, 0, 0);
-	printf ("%s\n", SQL);
-	// if table "metatags_tab" exists - try to drop table and create it again
 	if (result == 1 )
-		if ( (result = delete_table (db, "metatags_tab")) != SQLITE_OK)
+		if ( (result = delete_table (db, DB_TABLE_NAME_FTS)) != SQLITE_OK)
 			return -1;
 		else
 			result = sqlite3_exec(db, SQL, 0, 0, 0);

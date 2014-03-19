@@ -8,29 +8,7 @@
 #ifndef KEYVALSTR_H_
 #define KEYVALSTR_H_
 
-#include "opts_types.h"
-
-typedef struct {
-	char **list;
-	int count;
-	int max_count;
-} List_t;
-
-typedef struct {
-	char **pKey;
-	char **pVal;
-	int count;
-	int max_count;
-} KeyValueList_t;
-
-typedef struct {
-	char **pKey;
-	int *pVal;
-	int count;
-	int max_count;
-} IntKeyValueList_t;
-
-
+#include "config_const_types.h"
 
 char *getValArgs (char *);
 char *getKeyArgs (char *);
