@@ -28,11 +28,11 @@ int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
 	int result = 0;
 	//sqlite3_exec(db, SQL, 0, 0, 0);
     sqlite3_stmt *pStmt;
-
     do {
     	result = sqlite3_prepare(db, SQL, -1, &pStmt, 0);
         if( result != SQLITE_OK ){
-        	return result;
+        	CHECK_DB_ERROR;
+        	return -1;
         }
         while ( (result = sqlite3_step(pStmt)) == SQLITE_ROW)
         {
@@ -47,20 +47,28 @@ int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
 int checkRec_Path_Name (sqlite3 *db, char *tableName)
 {
 	char *pathInfo = NULL;
-	char *SQL_ = "SELECT ID FROM %s WHERE %s"; // 1. PATH_INFO field, 2. table name, 3. filter field PATH_INFO, 4. filter val
+	char *SQL_ = "SELECT * FROM %s WHERE %s"; // 1. PATH_INFO field, 2. table name, 3. filter field PATH_INFO, 4. filter val
 	char *SQL_Where = NULL;
 	char *SQL = NULL;
 	pathInfo = getenv (PATH_INFO_NAME);
 	if (pathInfo == NULL)
 		return -1;
-	SQL = (char *) malloc ( sizeof (char) * ( strlen (SQL_) + strlen ( PATH_INFO_NAME ) + 20 + strlen (tableName) )  );
-	sprintf (SQL, SQL_, DB_TABLE_NAME_FTS, PATH_INFO_NAME, pathInfo );
+	SQL_Where = (char *) malloc ( sizeof (char ) * strlen ( PATH_INFO_NAME ) + strlen ( str_CRC32( pathInfo ) ) + 5 );
+	sprintf (SQL_Where, "%s=%s", PATH_INFO_NAME, str_CRC32( pathInfo ));
+	printf (" %s \n", SQL_Where );
+	SQL = (char *) malloc ( sizeof (char) * ( strlen (SQL_) + strlen ( SQL_Where ) + 20 + strlen (tableName) )  );
+
+	sprintf (SQL, SQL_, DB_TABLE_NAME, SQL_Where );
+	printf ("%s, rowcount = %d \n", SQL, do_Query_SQL_row_count (db, SQL));
+
 	if (do_Query_SQL_row_count (db, SQL) > 0)
 	{
+		free( SQL_Where );
 		free (SQL);
 		return 1;
 	}
 	free (SQL);
+	free( SQL_Where );
 	return 0;
 }
 
@@ -290,11 +298,81 @@ int delete_table (sqlite3 *db, const char *table_name)
 	return result;
 }
 
-int create_Table (sqlite3 *db, List_t *list)
+int printf_db_struct ( sqlite3 *db )
 {
-//	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE %s USING fts4 (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
+	int i = 0;
+	int j = 0;
+	List_t tables;
+	initList( &tables, 10 );
+	get_tables_names(db, &tables);
+	for ( i = 0 ;i < tables.count; i++)
+	{
+		printf ( "%s \n", tables.list[i] );
+		KeyValueList_t tableStruct;
+		initKVList( &tableStruct, 10 );
+		get_table_struct( db, &tableStruct, tables.list[i]);
+		for ( j = 0; j < tableStruct.count; j++)
+		{
+			printf ("\t %s \n", tableStruct.pKey[j]);
+		}
+	}
+	return 0;
+}
+
+int create_Table_regular (sqlite3 *db, List_t *list)
+{
 	const char *SqlCreatTemplate = "CREATE TABLE %s (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
 	const char *SqlContentLength = ", CONTENT_LENGTH INTEGER ";
+	const char *SqlTEXT_FILED = "TEXT ";
+	char *SQL = NULL;
+	char *buff = NULL;
+    int max_buff_len = MAX_BUFF;
+    int buff_len = 0;
+    int i = 0;
+    int result;
+	buff = malloc( sizeof (char) * MAX_BUFF);
+	if (list != NULL)
+	{
+		for (i = 0; i < list->count; i++)
+		{
+			if ((MY_STRNCMP (list->list[i], CONTETN_LENGTH_NAME)) == 0)
+			{
+				if (checkmemsize( buff_len + strlen(SqlContentLength) + 4, &max_buff_len, buff) == NULL)
+					return -1;
+				sprintf(buff + buff_len, "%s", SqlContentLength);
+				buff_len = strlen(buff);
+			}
+			else
+			{
+				if ((checkmemsize( buff_len + strlen(list->list[i]) + strlen(SqlTEXT_FILED) + 4, &max_buff_len, buff)) == NULL)
+					return -1;
+				sprintf(buff + buff_len, ", %s %s", list->list[i], SqlTEXT_FILED);
+				buff_len = strlen(buff);
+			}
+		}
+	}
+	else
+	{
+		sprintf (buff, "%s", SqlContentLength );
+	}
+	SQL = (char *) malloc( sizeof(char) * ( strlen ( DB_TABLE_NAME ) + strlen(buff) + strlen(SqlCreatTemplate) + 1));
+	sprintf(SQL, SqlCreatTemplate, DB_TABLE_NAME, buff);
+	free(buff);
+	// try to create new table
+	result = sqlite3_exec(db, SQL, 0, 0, 0);
+	if (result == 1 )
+		if ( (result = delete_table (db, DB_TABLE_NAME)) != SQLITE_OK)
+			return -1;
+		else
+			result = sqlite3_exec(db, SQL, 0, 0, 0);
+	return result;
+}
+
+int create_Table_FTS (sqlite3 *db, List_t *list)
+{
+	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE %s USING fts4 (ID TEXT %s )";
+//	const char *SqlCreatTemplate = "CREATE TABLE %s (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
+//	const char *SqlContentLength = ", CONTENT_LENGTH INTEGER ";
 	const char *SqlTEXT_FILED = "TEXT ";
 	char *SQL = NULL;
 	char *buff = NULL;
@@ -305,27 +383,25 @@ int create_Table (sqlite3 *db, List_t *list)
 	buff = malloc(MAX_BUFF);
 	for (i = 0; i < list->count; i++)
 	{
-		printf ("buff = %s   \n", buff);
+/*
 		if ((MY_STRNCMP (list->list[i], CONTETN_LENGTH_NAME)) == 0)
 		{
 			if (checkmemsize( buff_len + strlen(SqlContentLength) + 4, &max_buff_len, buff) == NULL)
 				return -1;
-			//printf (" buff = %s \n", buff );
 			sprintf(buff + buff_len, "%s", SqlContentLength);
-			//printf (" buff = %s \n", buff );
 			buff_len = strlen(buff);
 		}
-		else
-		{
-			if ((checkmemsize( buff_len + strlen(list->list[i]) + strlen(SqlTEXT_FILED) + 4, &max_buff_len, buff)) == NULL)
-				return -1;
-			sprintf(buff + buff_len, ", %s %s", list->list[i], SqlTEXT_FILED);
-			buff_len = strlen(buff);
-		}
+*/
+//		else
+//		{
+		if ((checkmemsize( buff_len + strlen(list->list[i]) + strlen(SqlTEXT_FILED) + 4, &max_buff_len, buff)) == NULL)
+			return -1;
+		sprintf(buff + buff_len, ", %s %s", list->list[i], SqlTEXT_FILED);
+		buff_len = strlen(buff);
+//		}
 	}
 	SQL = (char *) malloc( sizeof(char) * ( strlen ( DB_TABLE_NAME_FTS ) + strlen(buff) + strlen(SqlCreatTemplate) + 1));
 	sprintf(SQL, SqlCreatTemplate, DB_TABLE_NAME_FTS, buff);
-	printf ("%s\n", SQL);
 	free(buff);
 	// try to create new table
 	result = sqlite3_exec(db, SQL, 0, 0, 0);
