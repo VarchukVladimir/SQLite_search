@@ -44,6 +44,19 @@ int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
 	return reccount;
 }
 
+int delete_record_by_ID ( sqlite3 *db )
+{
+	int result = 0;
+	printf ("Delete record \n");
+	char *SQL_delete_ = "DELETE FROM %s WHERE ID=%s";
+	char *SQL_delete = NULL;
+	SQL_delete = (char *) malloc ( sizeof ( char ) * ( strlen (SQL_delete_) + strlen ( DB_TABLE_NAME_FTS ) + strlen ( str_CRC32( getenv( PATH_INFO_NAME )))));
+	sprintf ( SQL_delete, SQL_delete_, DB_TABLE_NAME_FTS, str_CRC32( getenv( PATH_INFO_NAME )));
+	result = do_Query_SQL (db, SQL_delete);
+	CHECK_DB_ERROR;
+	return result;
+}
+
 int checkRec_Path_Name (sqlite3 *db, char *tableName)
 {
 	char *pathInfo = NULL;
