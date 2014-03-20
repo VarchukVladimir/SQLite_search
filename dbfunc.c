@@ -57,6 +57,30 @@ int delete_record_by_ID ( sqlite3 *db )
 	return result;
 }
 
+int add_record (sqlite3 *db, KeyValueList_t *envKVList, List_t *fieldList)
+{
+	char *SQL_ = "INSERT INTO %s(%s) VALUES(%s)"; // tablaname, field list, values;
+	char *SQL = NULL;
+	char *SQL_fields = NULL;
+	char *SQL_values = NULL;
+	int result = 0;
+
+	SQL_fields = getInsert_Values_Str_ID ( envKVList, fieldList, 1, 1 );
+	SQL_values = getInsert_Values_Str_ID ( envKVList, fieldList, 0, 1 );
+
+	int sizeSQL = (strlen ( SQL_fields ) + strlen (SQL_values) + strlen(SQL_) + strlen (DB_TABLE_NAME_FTS) + 1 );
+	SQL = (char *) malloc ( sizeof (char) * sizeSQL);
+	sprintf  (SQL, SQL_, DB_TABLE_NAME_FTS, SQL_fields, SQL_values);
+	result = do_Query_SQL (db, SQL);
+
+	free (SQL);
+	free (SQL_fields);
+	free (SQL_values);
+
+	CHECK_DB_ERROR;
+	return result;
+}
+
 int checkRec_Path_Name (sqlite3 *db, char *tableName)
 {
 	char *pathInfo = NULL;
