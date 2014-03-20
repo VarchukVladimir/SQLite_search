@@ -54,13 +54,12 @@ int checkRec_Path_Name (sqlite3 *db, char *tableName)
 	if (pathInfo == NULL)
 		return -1;
 	SQL_Where = (char *) malloc ( sizeof (char ) * strlen ( PATH_INFO_NAME ) + strlen ( str_CRC32( pathInfo ) ) + 5 );
-	sprintf (SQL_Where, "%s=%s", PATH_INFO_NAME, str_CRC32( pathInfo ));
-	printf (" %s \n", SQL_Where );
+	sprintf (SQL_Where, "%s=%s", "ID", str_CRC32( pathInfo ));
 	SQL = (char *) malloc ( sizeof (char) * ( strlen (SQL_) + strlen ( SQL_Where ) + 20 + strlen (tableName) )  );
 
-	sprintf (SQL, SQL_, DB_TABLE_NAME, SQL_Where );
-	printf ("%s, rowcount = %d \n", SQL, do_Query_SQL_row_count (db, SQL));
+	sprintf (SQL, SQL_, tableName, SQL_Where );
 
+	printf ("SQL %s\n", SQL);
 	if (do_Query_SQL_row_count (db, SQL) > 0)
 	{
 		free( SQL_Where );
