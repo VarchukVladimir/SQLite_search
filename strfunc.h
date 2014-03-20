@@ -39,6 +39,7 @@ char * str_CRC32 (const char *);
 char *getInsert_Values_Str ( KeyValueList_t *, List_t *, int );
 char *getInsert_Values_Str_ID ( KeyValueList_t *, List_t *, int, int );
 char *getWHERE_condition ( Options_t *);
+int check_str_in_list (List_t *, char *);
 
 
 

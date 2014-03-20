@@ -92,6 +92,18 @@ char *getInsert_Values_Str ( KeyValueList_t *kvList, List_t *fields, int flag )
 	return str;
 }
 
+/*
+ * if exist return 1 else 0;
+ * */
+int check_str_in_list (List_t *list, char * str)
+{
+	int i = 0;
+	for (i = 0; i < list->count; i++)
+		if (strcasecmp( list->list[i], str ) == 0)
+			return 1;
+	return 0;
+}
+
 
 char *getInsert_Values_Str_ID ( KeyValueList_t *kvList, List_t *fields, int flag, int useID )
 {
@@ -104,21 +116,21 @@ char *getInsert_Values_Str_ID ( KeyValueList_t *kvList, List_t *fields, int flag
 	for (i = 0; i < kvList->count; i++)
 	{
 		for ( j = 0; j < fields->count; j++)
-			if (strcasecmp( kvList->pKey[i] , fields->list[j] ) == 0 )
+			if ( kvList->pKey[i] != NULL && strcasecmp( kvList->pKey[i] , fields->list[j] ) == 0 )
 				strsize += strlen ( KEY_OR_VAL ) + strlen (KEY_OR_VAL_TEMPL);
 	}
 	if (useID == 1)
 	{
 		for ( i = 0; i < kvList->count; i++)
 		{
-
 			if ( kvList->pKey[i] != NULL && strcasecmp( kvList->pKey[i], "PATH_INFO" ) == 0)
 			{
 				cCRC32 = str_CRC32( kvList->pVal[i] );
 				iCRC32 = num_CRC32( kvList->pVal[i] );
 			}
 		}
-		strsize += strlen ( cCRC32 );
+		if (cCRC32 != NULL )
+			strsize += strlen ( cCRC32 );
 	}
 	strsize++;
 
