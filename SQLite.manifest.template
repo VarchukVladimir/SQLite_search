@@ -1,0 +1,18 @@
+=====================================================================
+Channel = {ABS_PATH}/list.txt, 	/dev/stdin, 0, 0, 9999999999, 999999999, 0, 0
+Channel = {ABS_PATH}/debug.txt, 	/dev/debug, 0, 0, 0, 0, 999999999, 9999999999
+Channel = {ABS_PATH}/stdout.txt, 	/dev/stdout, 0, 0, 0, 0, 9999999999, 9999999999
+Channel = {ABS_PATH}/stderr.txt, 	/dev/stderr, 0, 0, 0, 0, 9999999999, 9999999999
+==Channel = {ABS_PATH}/input.txt, 	/dev/input, 0, 0, 9999999999, 9999999999, 0, 0
+Channel = {ABS_PATH}/output, 	/dev/output, 0, 0, 0, 0, 9999999999, 9999999999
+=====================================================================
+Channel = {ABS_PATH}/SQLite.nvram,	/dev/nvram,	0, 0, 999999999,9999999999, 0,0
+=====================================================================
+Version = 20130611
+Program = {ABS_PATH}/SQL_search
+Memory = 419430400, 0
+==NameServer = udp:127.0.0.1:54321
+Timeout=500
+Node = 5
+=====================================================================
+
