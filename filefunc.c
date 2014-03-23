@@ -186,9 +186,8 @@ int newbufferedpack (char *devname, char *dirname )
 
 	if (!dir)
 		printf ("*** ZVM Error open DIR %s\n", indexpath);
-	int blocksize = 1024;//READ_WRITE_BUFF_SIZE;
+	int blocksize = READ_WRITE_BUFF_SIZE;
 	char *buff = NULL;
-	fprintf (stdout, "test %d\n", blocksize);
 	buff = (char *) malloc (sizeof (char) * blocksize);
 
 	long deltabytes = 0;
