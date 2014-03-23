@@ -21,6 +21,55 @@ int do_Query_SQL (sqlite3 *db, char *SQL)
 	return sqlite3_exec(db, SQL, 0, 0, 0);
 }
 
+int db_open (sqlite3 **db, char *db_file_name )
+{
+	int result = 0;
+	sqlite3_open(db_file_name , db);
+	if( SQLITE_OK != sqlite3_errcode(*db) )
+	{
+			databaseError(*db);
+			return -1;
+	}
+	else
+	{
+		/*enable extended sqlite error code*/
+		int result = sqlite3_extended_result_codes(*db, 1);
+		fprintf(stderr, "sql extended result code enable, err code=%d \n", result);
+
+		/*disable journaling*/
+		if (!result){
+			result = sqlite_pragma(*db, "PRAGMA journal_mode=MEMORY;" );
+			fprintf( stderr, "set journal_mode pragma errcode=%d\n", result);
+		}
+		/*disable using of synchronisation, because it's not supported by ZRT FS*/
+		if (!result){
+			result = sqlite_pragma(*db, "PRAGMA synchronous=OFF;" );
+			fprintf( stderr, "set syncronous pragma errcode=%d\n", result);
+		}
+		/*exclusive access to DB by single process*/
+		if (!result){
+			result = sqlite_pragma(*db, "PRAGMA locking_mode=EXCLUSIVE;" );
+			fprintf( stderr, "set locking_mode pragma errcode=%d\n", result);
+		}
+	}
+	return result;
+}
+
+int sqlite_pragma (sqlite3* db, const char* request){
+    // get current database version of schema
+    static sqlite3_stmt *stmt_pragma;
+    int rc=0;
+
+    if( (rc=sqlite3_prepare_v2(db, request, -1, &stmt_pragma, NULL)) == SQLITE_OK) {
+        while(sqlite3_step(stmt_pragma) == SQLITE_ROW);
+    }
+    else{
+	rc = sqlite3_errcode(db);
+    }
+    sqlite3_finalize(stmt_pragma);
+    printf ("OK \n");
+    return rc;
+}
 
 int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
 {
@@ -301,7 +350,7 @@ int get_table_struct (sqlite3 *db, KeyValueList_t *list, const char * tableName 
         int column_count = sqlite3_column_count(pStmt);
         for (i = 0; i < column_count; i++)
         {
-        	char *datatype;
+        	char *datatype = NULL;
         	const char *collation;
         	int not_null;
         	int primary_key;
@@ -339,8 +388,10 @@ int printf_db_struct ( sqlite3 *db )
 	int i = 0;
 	int j = 0;
 	List_t tables;
+	int result = 0;
 	initList( &tables, 10 );
-	get_tables_names(db, &tables);
+	result = get_tables_names(db, &tables);
+	CHECK_DB_ERROR;
 	for ( i = 0 ;i < tables.count; i++)
 	{
 		printf ( "%s \n", tables.list[i] );
@@ -447,18 +498,6 @@ int create_Table_FTS (sqlite3 *db, List_t *list)
 		else
 			result = sqlite3_exec(db, SQL, 0, 0, 0);
 	return result;
-}
-
-int db_open (const char * zDatabase, sqlite3 *db)
-{
-	printf ("%s\n", zDatabase);
-	sqlite3_open(zDatabase, &db);
-	if( SQLITE_OK != sqlite3_errcode(db) )
-	{
-			databaseError(db);
-			return 1;
-	}
-	return 0;
 }
 
 void databaseError(sqlite3* db){
