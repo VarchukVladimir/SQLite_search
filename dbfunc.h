@@ -23,7 +23,7 @@ int insertValues (sqlite3 *, IntKeyValueList_t *, KeyValueList_t *, KeyValueList
 int Query_SQL (sqlite3 *, char *);
 int checkTable (sqlite3 *, char *);
 int checkRec_Path_Name (sqlite3 *, char *);
-int delete_record_by_ID ( sqlite3 *);
+int delete_record_by_ID ( sqlite3 *, char *);
 int add_record (sqlite3 *, KeyValueList_t *, List_t *);
 int sqlite_pragma (sqlite3*, const char* );
 
