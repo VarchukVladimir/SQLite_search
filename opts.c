@@ -60,8 +60,14 @@ int getopts (int argc, char **argv, Options_t *opts, KeyValueList_t *kvlist, Lis
 			if ((i+1 < argc) && (argv [i+1][0] != '-') )
 			{
 				char *buff = NULL;
-				buff = (char *) malloc (sizeof (char ) * ( strlen (argv[i + 1]) + 1));
-				strcpy (buff, argv[i+1]);
+				if ( i == (argc - 1 ) )
+					opts->pObject_path = NULL;
+				else
+				{
+					buff = (char *) malloc (sizeof (char ) * ( strlen (argv[i + 1]) + 1));
+					strcpy (buff, argv[i+1]);
+					opts->pObject_path = buff;
+				}
 				i++;
 			}
 		}
