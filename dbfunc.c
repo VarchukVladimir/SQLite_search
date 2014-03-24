@@ -67,7 +67,6 @@ int sqlite_pragma (sqlite3* db, const char* request){
 	rc = sqlite3_errcode(db);
     }
     sqlite3_finalize(stmt_pragma);
-    printf ("OK \n");
     return rc;
 }
 
@@ -93,14 +92,14 @@ int do_Query_SQL_row_count (sqlite3 *db, char *SQL)
 	return reccount;
 }
 
-int delete_record_by_ID ( sqlite3 *db )
+int delete_record_by_ID ( sqlite3 *db, char* fileName )
 {
 	int result = 0;
 	printf ("Delete record \n");
 	char *SQL_delete_ = "DELETE FROM %s WHERE ID=%s";
 	char *SQL_delete = NULL;
-	SQL_delete = (char *) malloc ( sizeof ( char ) * ( strlen (SQL_delete_) + strlen ( DB_TABLE_NAME_FTS ) + strlen ( str_CRC32( getenv( PATH_INFO_NAME )))));
-	sprintf ( SQL_delete, SQL_delete_, DB_TABLE_NAME_FTS, str_CRC32( getenv( PATH_INFO_NAME )));
+	SQL_delete = (char *) malloc ( sizeof ( char ) * ( strlen (SQL_delete_) + strlen ( DB_TABLE_NAME_FTS ) + strlen ( str_CRC32( fileName ))));
+	sprintf ( SQL_delete, SQL_delete_, DB_TABLE_NAME_FTS, str_CRC32( fileName));
 	result = do_Query_SQL (db, SQL_delete);
 	CHECK_DB_ERROR;
 	return result;
@@ -145,7 +144,7 @@ int checkRec_Path_Name (sqlite3 *db, char *tableName)
 
 	sprintf (SQL, SQL_, tableName, SQL_Where );
 
-	printf ("SQL %s\n", SQL);
+	printf ("check record SQL %s\n", SQL);
 	if (do_Query_SQL_row_count (db, SQL) > 0)
 	{
 		free( SQL_Where );
