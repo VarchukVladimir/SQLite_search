@@ -33,6 +33,7 @@ char *gen_db_file_name (const char * db_dir, const char *db_file)
 int newbufferedunpack (char * dir_name, char * devname)
 {
 
+//	printf ("%s %s \n", dir_name, devname);
 	int fdinfile;
 	char *dirName = dir_name;
   	DIR *dir;
@@ -331,4 +332,36 @@ size_t getfilesize_fd (int fd, char *filename, int sizebyfilename)
 
 	return fsize;
 }
+
+void mylistdir (char *path)
+{
+  	DIR *dir;
+	struct dirent *entry;
+	char newpath[1024];
+	dir = opendir(path);
+	int len;
+	if(dir == 0)
+	{
+		return;
+	}
+	while((entry = readdir(dir)))
+	{
+
+		printf ("%s/%s D_TYPE = %d\n",path, entry->d_name, entry->d_type);
+		if(entry->d_type == DT_DIR)
+		{
+			if (strcmp (entry->d_name, ".") != 0 && strcmp (entry->d_name, "..") != 0)
+			{
+				strcpy (newpath, path);
+				len = strlen (newpath);
+				if (newpath [len-1] != '/')
+					strcat (newpath, "/");
+				strcat (newpath, entry->d_name);
+				mylistdir (newpath);
+			}
+		}
+	}
+	closedir(dir);
+}
+
 
