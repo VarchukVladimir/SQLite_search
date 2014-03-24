@@ -14,5 +14,6 @@ size_t getfilesize_fd (int, char *, int);
 char *gen_db_file_name (const char *, const char *);
 int newbufferedunpack (char *, char *);
 int newbufferedpack (char *, char * );
+void mylistdir (char *);
 
 #endif /* FILEFUNC_H_ */
