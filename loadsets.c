@@ -25,16 +25,16 @@ int get_list ( FILE *f, char * file_save, List_t * list )
 	int i = 0;
 	while (fgets (buff, BUFF_SIZE, f) != NULL )
 	{
+
 		if (strlen (buff) > 1 )
 		{
-			list->list[i] = (char * ) malloc (sizeof (char) * (strlen (buff) + 1));
 			buff [strlen (buff) - 1] = '\0';
-			strncpy (list->list[i], buff, strlen (buff));
+			list->list[i] = (char * ) malloc (sizeof (char) * (strlen (buff) + 1));
+			strncpy (list->list[i], buff, strlen (buff) + 1);
 			list->count++;
 			i++;
 		}
 	}
-	printf ( "list->count = %d\n", list->count);
 	return 0;
 }
 

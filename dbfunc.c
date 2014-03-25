@@ -112,6 +112,12 @@ int add_record (sqlite3 *db, KeyValueList_t *envKVList, List_t *fieldList)
 	char *SQL_fields = NULL;
 	char *SQL_values = NULL;
 	int result = 0;
+	KeyValueList_t tableStruct;
+	initKVList( &tableStruct, 10 );
+
+	get_table_struct( db, &tableStruct, DB_TABLE_NAME_FTS );
+
+
 
 	SQL_fields = getInsert_Values_Str_ID ( envKVList, fieldList, 1, 1 );
 	SQL_values = getInsert_Values_Str_ID ( envKVList, fieldList, 0, 1 );
@@ -176,6 +182,9 @@ int checkTable (sqlite3 *db, char *tableName)
 
 int Query_SQL (sqlite3 *db, char * SQL)
 {
+
+	printf ("%s \n", SQL);
+
     sqlite3_stmt *pStmt;
     int rowcount = 0;
     int result;
@@ -407,7 +416,7 @@ int printf_db_struct ( sqlite3 *db )
 
 int create_Table_regular (sqlite3 *db, List_t *list)
 {
-	const char *SqlCreatTemplate = "CREATE TABLE %s (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
+	const char *SqlCreatTemplate = "CREATE TABLE %s (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s)";
 	const char *SqlContentLength = ", CONTENT_LENGTH INTEGER ";
 	const char *SqlTEXT_FILED = "TEXT ";
 	char *SQL = NULL;
@@ -456,7 +465,7 @@ int create_Table_regular (sqlite3 *db, List_t *list)
 
 int create_Table_FTS (sqlite3 *db, List_t *list)
 {
-	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE %s USING fts4 (ID TEXT %s )";
+	const char *SqlCreatTemplate = "CREATE VIRTUAL TABLE %s USING fts4 (ID TEXT %s , tokenize=porter)";
 //	const char *SqlCreatTemplate = "CREATE TABLE %s (ID INTEGER PRIMARY KEY NOT NULL UNIQUE %s )";
 //	const char *SqlContentLength = ", CONTENT_LENGTH INTEGER ";
 	const char *SqlTEXT_FILED = "TEXT ";
@@ -490,6 +499,7 @@ int create_Table_FTS (sqlite3 *db, List_t *list)
 	sprintf(SQL, SqlCreatTemplate, DB_TABLE_NAME_FTS, buff);
 	free(buff);
 	// try to create new table
+	printf ("%s \n", SQL);
 	result = sqlite3_exec(db, SQL, 0, 0, 0);
 	if (result == 1 )
 		if ( (result = delete_table (db, DB_TABLE_NAME_FTS)) != SQLITE_OK)

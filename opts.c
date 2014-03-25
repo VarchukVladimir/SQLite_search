@@ -134,6 +134,9 @@ int getopts (int argc, char **argv, Options_t *opts, KeyValueList_t *kvlist, Lis
 	if (opts->iList == 1)
 	{
 		get_list(stdin, NULL, list);
+		int a = 0;
+		for (a = 0; a < list->count; a++)
+			printf ("%s \n", list->list[a]);
 	}
 	else
 	{
