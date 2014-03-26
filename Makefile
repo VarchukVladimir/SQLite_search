@@ -1,36 +1,41 @@
-#CC = x86_64-nacl-gcc
-CC = gcc
-CCFLAGS = -g
+CC = x86_64-nacl-gcc
+#CC = gcc
+CCFLAGS = 
 LIBS = -lsqlite3 -lz
 
 APP_NAME = SQL_search
 
-OBJS = SQL_search.o opts.o loadsets.o strfunc.o dbfunc.o filefunc.o env.o
-SRC = SQL_search.c opts.c loadsets.c strfunc.c dbfunc.c filefunc.c emv.c
+OBJS = obj/SQL_search.o obj/opts.o obj/loadsets.o obj/strfunc.o obj/dbfunc.o obj/filefunc.o obj/env.o
+SRC = src/SQL_search.c src/opts.c src/loadsets.c src/strfunc.c src/dbfunc.c src/filefunc.c src/emv.c
 
-SQL_search: $(OBJS)	
+all: create_dirs $(APP_NAME)
+
+create_dirs:
+	@mkdir obj -p 
+
+$(APP_NAME): $(OBJS)	
 	$(CC) -o $(APP_NAME) $(OBJS) $(CCFLAGS) $(LIBS)
 	
-SQL_search.o: 
-	$(CC) -c -o SQL_search.o SQL_search.c $(CCFLAGS) 
+obj/SQL_search.o: src/SQL_search.c  
+	$(CC) -c -o $@ $^ $(CCFLAGS) 
 	
-opts.o:
-	$(CC) -c -o opts.o opts.c $(CCFLAGS)
+obj/opts.o: src/opts.c
+	$(CC) -c -o $@ $^ $(CCFLAGS)
 
-loadsets.o:
-	$(CC) -c -o loadsets.o loadsets.c $(CCFLAGS)
+obj/loadsets.o:	src/loadsets.c
+	$(CC) -c -o $@ $^ $(CCFLAGS)
 
-strfunc.o:
-	$(CC) -c -o strfunc.o strfunc.c $(CCFLAGS)
+obj/strfunc.o: src/strfunc.c
+	$(CC) -c -o $@ $^ $(CCFLAGS)
 
-dbfunc.o:
-	$(CC) -c -o dbfunc.o dbfunc.c $(CCFLAGS)
+obj/dbfunc.o: src/dbfunc.c
+	$(CC) -c -o $@ $^ $(CCFLAGS)
 
-filefunc.o:
-	$(CC) -c -o filefunc.o filefunc.c $(CCFLAGS)
+obj/filefunc.o: src/filefunc.c
+	$(CC) -c -o $@ $^ $(CCFLAGS)
 
-env.o:
-	$(CC) -c -o env.o env.c $(CCFLAGS)
+obj/env.o: src/env.c
+	$(CC) -c -o $@ $^ $(CCFLAGS)
 
 clean:
-	rm -rf *.o $(APP_NAME) 
+	rm -rf obj/* $(APP_NAME) 
